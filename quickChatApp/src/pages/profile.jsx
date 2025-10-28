@@ -1,16 +1,31 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import assets from "../assets/assets";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const Profile = () => {
+  const {authUser, updateProfile} = useContext(AuthContext);
+  console.log("authUser",authUser);
+
   const [selectedProfilePic, setSelectedProfilePic] = useState(null);
   const navigate = useNavigate();
-  const [name, setName] = useState("Riya");
-  const [bio, setBio] = useState("Hi everyone, I am using quick chat");
+  const [name, setName] = useState(authUser.fullName);
+  const [bio, setBio] = useState(authUser.bio);
 
   const handleSubmit = async(e)=> {
     e.preventDefault();
-    navigate('/');
+    if(!selectedProfilePic){
+      await updateProfile({fullName: name, bio});
+      navigate('/');
+      return;
+    } 
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedProfilePic);
+    reader.onload = async ()=>{
+      const base64Image = reader.result;
+      await updateProfile({profilePic: base64Image, fullName: name, bio});
+      navigate('/');
+    }
   }
 
   return (
@@ -33,9 +48,9 @@ const Profile = () => {
               src={
                 selectedProfilePic
                   ? URL.createObjectURL(selectedProfilePic)
-                  : assets.avatar_icon
+                  : authUser?.profilePic || assets.avatar_icon
               }
-              className={`w-12 h-12 ${selectedProfilePic && "rounded-full"}`}
+              className={`w-12 h-12 ${(authUser?.profilePic || selectedProfilePic) && "rounded-full"}`}
             />
             upload profile image
           </label>
@@ -60,6 +75,7 @@ const Profile = () => {
             className="p-2 bg-gradient-to-r from-blue-400 to-blue-950/100  text-white rounded-full text-lg cursor-pointer "
           >Save</button>
         </form>
+        <img className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${selectedProfilePic && 'rounded-full'}`} src={authUser?.profilePic || assets.avatar_icon} alt=""/>
       </div>
     </div>
   );
