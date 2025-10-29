@@ -132,6 +132,7 @@ const ChatContaner = () => {
           </label>
         </div>
         <img
+          onClick={handleSendMessage}
           src={assets.send_button}
           alt=""
           className="w-7 cursor-pointer blue-900/50 "
